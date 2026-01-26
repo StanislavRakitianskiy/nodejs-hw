@@ -1,20 +1,16 @@
+import { HttpError } from 'http-errors';
+
 export const errorHandler = (err, req, res, next) => {
-  // Handle mongoose CastError (invalid ObjectId)
-  if (err.name === 'CastError' || (err.kind === 'ObjectId')) {
-    return res.status(404).json({
-      message: 'Note not found'
-    });
-  }
+  let status = 500;
+  let message = 'Internal server error';
 
-  // Handle mongoose validation errors
-  if (err.name === 'ValidationError') {
-    return res.status(400).json({
-      message: err.message
-    });
+  if (err instanceof HttpError) {
+    status = err.status || err.statusCode || 500;
+    message = err.message;
+  } else if (err.status || err.statusCode) {
+    status = err.status || err.statusCode;
+    message = err.message || 'Internal server error';
   }
-
-  const status = err.status || err.statusCode || 500;
-  const message = err.message || 'Internal server error';
 
   res.status(status).json({
     message
