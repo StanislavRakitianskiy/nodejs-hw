@@ -169,6 +169,7 @@ export const requestResetEmail = async (req, res, next) => {
     // Send email
     try {
       await sendEmail({
+        from: process.env.SMTP_FROM,
         to: email,
         subject: 'Password Reset',
         html
