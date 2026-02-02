@@ -5,19 +5,19 @@ import { Note } from '../models/note.js';
 export const getAllNotes = async (req, res, next) => {
   try {
     const { page = 1, perPage = 10, tag, search } = req.query;
+    const userId = req.user._id;
 
     const pageNumber = Number(page) || 1;
     const perPageNumber = Number(perPage) || 10;
     const skip = (pageNumber - 1) * perPageNumber;
 
-    const filter = {};
+    const filter = { userId };
 
     if (tag) {
       filter.tag = tag;
     }
 
     if (search !== undefined) {
-      // allow empty search string: it will match all docs when not using $text
       if (search.trim() !== '') {
         filter.$text = { $search: search };
       }
@@ -45,13 +45,13 @@ export const getAllNotes = async (req, res, next) => {
 export const getNoteById = async (req, res, next) => {
   try {
     const { noteId } = req.params;
-    
-    // Check if noteId is a valid ObjectId
+    const userId = req.user._id;
+
     if (!mongoose.Types.ObjectId.isValid(noteId)) {
       throw createError(404, 'Note not found');
     }
-    
-    const note = await Note.findById(noteId);
+
+    const note = await Note.findOne({ _id: noteId, userId });
 
     if (!note) {
       throw createError(404, 'Note not found');
@@ -65,7 +65,11 @@ export const getNoteById = async (req, res, next) => {
 
 export const createNote = async (req, res, next) => {
   try {
-    const note = await Note.create(req.body);
+    const userId = req.user._id;
+    const note = await Note.create({
+      ...req.body,
+      userId
+    });
     res.status(201).json(note);
   } catch (error) {
     next(error);
@@ -75,16 +79,20 @@ export const createNote = async (req, res, next) => {
 export const updateNote = async (req, res, next) => {
   try {
     const { noteId } = req.params;
-    
-    // Check if noteId is a valid ObjectId
+    const userId = req.user._id;
+
     if (!mongoose.Types.ObjectId.isValid(noteId)) {
       throw createError(404, 'Note not found');
     }
-    
-    const note = await Note.findByIdAndUpdate(noteId, req.body, {
-      new: true,
-      runValidators: true
-    });
+
+    const note = await Note.findOneAndUpdate(
+      { _id: noteId, userId },
+      req.body,
+      {
+        new: true,
+        runValidators: true
+      }
+    );
 
     if (!note) {
       throw createError(404, 'Note not found');
@@ -99,13 +107,13 @@ export const updateNote = async (req, res, next) => {
 export const deleteNote = async (req, res, next) => {
   try {
     const { noteId } = req.params;
-    
-    // Check if noteId is a valid ObjectId
+    const userId = req.user._id;
+
     if (!mongoose.Types.ObjectId.isValid(noteId)) {
       throw createError(404, 'Note not found');
     }
-    
-    const note = await Note.findByIdAndDelete(noteId);
+
+    const note = await Note.findOneAndDelete({ _id: noteId, userId });
 
     if (!note) {
       throw createError(404, 'Note not found');
@@ -116,3 +124,4 @@ export const deleteNote = async (req, res, next) => {
     next(error);
   }
 };
+
