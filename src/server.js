@@ -9,6 +9,7 @@ import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import notesRoutes from './routes/notesRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,6 +31,7 @@ app.use(cookieParser());
 // Routes
 app.use(authRoutes);
 app.use(notesRoutes);
+app.use(userRoutes);
 
 // 404 middleware
 app.use(notFoundHandler);

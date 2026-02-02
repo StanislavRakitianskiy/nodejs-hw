@@ -16,6 +16,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       minlength: 8
+    },
+    avatar: {
+      type: String,
+      default: 'https://ac.goit.global/fullstack/react/default-avatar.jpg'
     }
   },
   {
@@ -35,7 +39,6 @@ userSchema.pre('save', function (next) {
   if (!this.username) {
     this.username = this.email;
   }
-
   next();
 });
 
